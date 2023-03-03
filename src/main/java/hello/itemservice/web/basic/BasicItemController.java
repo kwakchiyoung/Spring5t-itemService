@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -59,10 +60,23 @@ public class BasicItemController {
         //또는  @ModelAttribute("item") Item이렇게 @ModelAttribute 의 이름을 생략하면 모델에 저장될 때 클래스명을 사용한다. 이때 클래스의 첫글자만 소문자로 변경해서 자동등록된다.
         return "basic/item";
     }
-    @PostMapping("/add") //3.4아이템등록
+    //@PostMapping("/add") //3.4아이템등록
     public String addItemV4(Item item, Model model){ //@ModelAttribute 자체도 생략가능하다. 대상 객체는 모델에 자동 등록된다.
         itemRepository.save(item);
         return "basic/item";
+    }
+
+    //@PostMapping("/add") //3.5아이템등록 redirect
+    public String addItemV5(Item item, Model model){
+        itemRepository.save(item);
+        return "redirect:/basic/items/"+ item.getId();
+    }
+    @PostMapping("/add") //3.6아이템등록
+    public String addItemV6(Item item, Model model , RedirectAttributes redirectAttributes){ //@ModelAttribute 자체도 생략가능하다. 대상 객체는 모델에 자동 등록된다.
+        Item savedItem = itemRepository.save(item);
+        redirectAttributes.addAttribute("itemId", savedItem.getId()); //리턴에서 {itemId}로 치환된다.
+        redirectAttributes.addAttribute("status", true); //나머지는 쿼리 파라미터로 넘어간다.
+        return "redirect:/basic/items/{itemId}";
     }
 
     @GetMapping("/{itemId}/edit") //4.수정
@@ -76,7 +90,6 @@ public class BasicItemController {
         itemRepository.update(itemId,item);
         return "redirect:/basic/items/{itemId}";
     }
-
 
     /**
      * 테스트용 데이터 추가
